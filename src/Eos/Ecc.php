@@ -3,6 +3,7 @@
 namespace xtype\Eos;
 
 use Elliptic\EC;
+use Elliptic\EC\Signature as ECSignature;
 
 class Ecc
 {
@@ -30,13 +31,18 @@ class Ecc
     {
         // wif private
         $privateHex = self::wifPrivateToPrivateHex($privateKey);
-        // var_dump($privateHex);
         $ec = new EC('secp256k1');
         $key = $ec->keyFromPrivate($privateHex);
+
         return $prefix . Utils::checkEncode(hex2bin($key->getPublic(true, 'hex')), null);
     }
 
-    /**
+    public static function publicKeyDecode(string $publicKey, string $prefix = 'EOS')
+    {
+        return Utils::checkDecode(ltrim($publicKey, $prefix), null);
+    }
+
+    /**checkDecode
      * 随机生成私钥
      * Random private key
      */
@@ -136,16 +142,27 @@ class Ecc
                 throw new \Exception('签名失败', 1);
             }
         }
-
         return 'SIG_K1_' . Utils::checkEncode(hex2bin($i . $r . $s), 'K1');
     }
 
     /**
      * Verify signed data.
      */
-    public static function verify()
+    public static function verify(string $data, string $signature, string $pubkey)
     {
-        // TODO::
+        $data = hash('sha256', hex2bin($data));
+        return self::verifyHash($data, $signature, $pubkey);
+    }
+
+    public static function verifyHash(string $dataSha256, string $signature, string $pubkey)
+    {
+        $keyString = substr($signature, 7);
+        $signature = Utils::checkDecode($keyString, 'K1');
+        $pubkey = self::publicKeyDecode($pubkey);
+
+        $ecdsa = new Signature();
+
+        return $ecdsa->verify($dataSha256, $signature, $pubkey);
     }
 
     /**
@@ -169,7 +186,10 @@ class Ecc
      */
     public static function sha256(string $data, $encoding = 'hex')
     {
-        // TODO::
-        // You can to use hash('sha256') of php;
+        $rawOutput = false;
+        if ($encoding != 'hex') {
+            $rawOutput = true;
+        }
+        return hash('sha256', $data, $rawOutput);
     }
 }
