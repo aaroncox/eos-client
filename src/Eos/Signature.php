@@ -105,12 +105,12 @@ class Signature
         $s = substr($signature, 66, 64);
 
         if ($i) {
-            $msg = hash('sha256', hex2bin($data . str_pad('', $i * 2, '0')));
+            $msg = hash('sha256', hex2bin($dataSha256 . str_pad('', $i * 2, '0')));
         } else {
-            $msg = $data;
+            $msg = $dataSha256;
         }
 
-        $msg = $this->_truncateToN(new BN($dataSha256, 16));
+        $msg = $this->_truncateToN(new BN($msg, 16));
         $key = $this->ec->keyFromPublic($key, $enc);
 
         $n = $this->ec->n;
