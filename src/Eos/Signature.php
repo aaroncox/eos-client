@@ -63,7 +63,6 @@ class Signature
         {
             $k = $kFunc($iter);
             $k = $this->_truncateToN($k, true);
-            // var_dump($k);
             if( $k->cmpn(1) <= 0 || $k->cmp($ns1) >= 0 )
                 continue;
 
@@ -104,17 +103,21 @@ class Signature
         $r = substr($signature, 2, 64);
         $s = substr($signature, 66, 64);
 
-        if ($i) {
-            $msg = hash('sha256', hex2bin($dataSha256 . str_pad('', $i * 2, '0')));
-        } else {
-            $msg = $dataSha256;
+        $m = $dataSha256;
+
+        try {
+          $msg = $this->_truncateToN(new BN($m, 16));
+        } catch (\Exception $e) {
+          $m = hash('sha256', hex2bin($m . str_pad('', $i * 2, '0')));
+          $msg = $this->_truncateToN(new BN($msg, 16));
         }
 
-        $msg = $this->_truncateToN(new BN($msg, 16));
+
+
         $key = $this->ec->keyFromPublic($key, $enc);
 
-        $n = $this->ec->n;
 
+        $n = $this->ec->n;
 
         $signature = new ECSignature([
             'r' => $r,

@@ -148,18 +148,17 @@ class Ecc
     /**
      * Verify signed data.
      */
-    public static function verify(string $data, string $signature, string $pubkey)
+    public static function verify(string $data, string $signature, string $pubkey, string $prefix = 'EOS')
     {
         $data = hash('sha256', hex2bin($data));
-        return self::verifyHash($data, $signature, $pubkey);
+        return self::verifyHash($data, $signature, $pubkey, $prefix);
     }
 
-    public static function verifyHash(string $dataSha256, string $signature, string $pubkey)
+    public static function verifyHash(string $dataSha256, string $signature, string $pubkey, string $prefix = 'EOS')
     {
         $keyString = substr($signature, 7);
         $signature = Utils::checkDecode($keyString, 'K1');
-        $pubkey = self::publicKeyDecode($pubkey);
-
+        $pubkey = self::publicKeyDecode($pubkey, $prefix);
         $ecdsa = new Signature();
 
         return $ecdsa->verify($dataSha256, $signature, $pubkey);
